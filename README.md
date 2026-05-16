@@ -133,9 +133,9 @@ docker run -d \
 
 Built by **Sid Shah** — VP Data & Analytics International, DataIQ Top 100 (2022 & 2026), Fractional CDO.
 
-- LinkedIn: [linkedin.com/in/sidshah](https://www.linkedin.com/in/sidshah)
+- LinkedIn: [linkedin.com/in/sidshah](https://www.linkedin.com/in/mrsidshah)
 - Substack: [substack.com/@mrsidshah](https://substack.com/@mrsidshah)
-- Fractional CDO practice: [Fortior Consulting](https://sidshah.co.uk)
+- Fractional Digital & AI practice: 
 
 ---
 
