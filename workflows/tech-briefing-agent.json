@@ -1,0 +1,167 @@
+{
+  "name": "Tech Industry Briefing Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 7
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger-001",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://www.reddit.com/r/technology/top.rss?t=day",
+        "options": {}
+      },
+      "id": "rss-feed-001",
+      "name": "RSS Feed - Reddit Technology",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "agent": "conversationalAgent",
+        "promptType": "define",
+        "text": "=You are a data strategy analyst and technology briefing assistant.\n\nAnalyse the following article and extract structured insights:\n\nTitle: {{ $json.title }}\nSummary: {{ $json.contentSnippet }}\nLink: {{ $json.link }}\n\nReturn a JSON object with these exact fields:\n{\n  \"headline\": \"one-line summary of the story\",\n  \"key_trend\": \"the underlying technology or business trend\",\n  \"business_implication\": \"what this means for data and technology leaders\",\n  \"data_opportunity\": \"specific opportunity for a data or AI team\",\n  \"relevance_score\": \"high / medium / low\",\n  \"tags\": [\"tag1\", \"tag2\"]\n}\n\nOnly return the JSON. No preamble or explanation.",
+        "options": {
+          "systemMessage": "You are a senior technology analyst providing concise, actionable briefings for C-suite data and technology leaders. Focus on commercial and strategic implications, not just technical descriptions. Be direct and specific."
+        }
+      },
+      "id": "ai-agent-001",
+      "name": "AI Agent - Article Analyser",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "model": "llama3.2",
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "id": "ollama-chat-001",
+      "name": "Ollama Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOllama",
+      "typeVersion": 1,
+      "position": [700, 500],
+      "credentials": {
+        "ollamaApi": {
+          "id": "ollama-local",
+          "name": "Ollama Local"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.output }}",
+              "operation": "contains",
+              "value2": "high"
+            }
+          ]
+        }
+      },
+      "id": "if-filter-001",
+      "name": "Filter - High Relevance Only",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [940, 300]
+    },
+    {
+      "parameters": {
+        "content": "=## 📰 Daily Tech Briefing — {{ $now.format('DD MMM YYYY') }}\n\n**Headline:** {{ $json.headline }}\n\n**Key Trend:** {{ $json.key_trend }}\n\n**Business Implication:** {{ $json.business_implication }}\n\n**Data Opportunity:** {{ $json.data_opportunity }}\n\n**Tags:** {{ $json.tags }}\n\n🔗 [Read full article]({{ $('RSS Feed - Reddit Technology').item.json.link }})\n\n---",
+        "options": {}
+      },
+      "id": "set-output-001",
+      "name": "Format Briefing Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [1180, 200]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "RSS Feed - Reddit Technology",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Feed - Reddit Technology": {
+      "main": [
+        [
+          {
+            "node": "AI Agent - Article Analyser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent - Article Analyser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent - Article Analyser": {
+      "main": [
+        [
+          {
+            "node": "Filter - High Relevance Only",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter - High Relevance Only": {
+      "main": [
+        [
+          {
+            "node": "Format Briefing Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateId": "tech-briefing-agent",
+    "instanceId": "sid-homelab"
+  },
+  "tags": [
+    {
+      "name": "AI Agents"
+    },
+    {
+      "name": "Home Lab"
+    }
+  ]
+}
